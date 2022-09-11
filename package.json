@@ -1,0 +1,24 @@
+{
+  "name": "b0t",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "airtable": "^0.11.4",
+    "axios": "^0.27.2",
+    "cors": "^2.8.5",
+    "cron": "^2.1.0",
+    "dotenv": "^16.0.2",
+    "express": "^4.18.1",
+    "routes": "^2.1.0",
+    "twitter-api-v2": "^1.12.5",
+    "twitter-text": "^3.1.0"
+  }
+}

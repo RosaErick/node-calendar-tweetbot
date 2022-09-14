@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import AirtableController from './AirtableController.js';
+import AirtableController from './Controllers/AirtableController.js';
 
 
 const routes = new Router();

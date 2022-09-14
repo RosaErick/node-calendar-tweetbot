@@ -1,20 +1,19 @@
-import client from "./twitterClient.js";
+import client from "./service/twitterClient.js";
 import cron from "cron";
-import airtable from "./service.js";
-import axios from "axios";
 import download from "image-downloader";
-
 import "dotenv/config";
-import console from "console";
+import DataProvider from "./service/provider.js";
+
 
 const rwClient = client.readWrite;
 const CronJob = cron.CronJob;
 
-const base = airtable.base("appRpJl0VIdVTRpTk");
-const tweetsArray = [];
 
-const dayData = new Date();
-const formatData = () => {
+
+const formatedData = () => {
+
+
+  const dayData = new Date();
   const day = dayData.getDate();
   const month = dayData.getMonth() + 1;
   const year = dayData.getFullYear();
@@ -26,7 +25,7 @@ const formatData = () => {
   }
 };
 
-console.log(formatData());
+
 
 const downloadImage = (url, filepath) => {
   return download.image({
@@ -38,20 +37,7 @@ const downloadImage = (url, filepath) => {
 const getTweetFromAirtable = async () => {
   //fetch to airtable
   try {
-    const response = await axios.get(
-      "https://api.airtable.com/v0/appRpJl0VIdVTRpTk/Table%201",
-      {
-        params: {
-          maxRecords: "3",
-          view: "Grid view",
-        },
-        headers: {
-          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-        },
-      }
-    );
-
-    const data = response.data.records;
+    const data = await DataProvider.fetchData();
     const tweets = data.map((tweet) => tweet.fields.tweet);
     const img = data.map((tweet) => tweet.fields.img);
     const imgUrl = img.map((img) => img[0].url);

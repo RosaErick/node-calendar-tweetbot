@@ -1,4 +1,4 @@
-import airtable from "./service.js";
+import airtable from "../service/airtableClient.js";
 
 class AirtableController {
   async index(req, res) {

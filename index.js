@@ -1,14 +1,17 @@
 import client from "./twitterClient.js";
 import cron from "cron";
 import airtable from "./service.js";
+import axios from "axios";
+import download from "image-downloader";
+
+import "dotenv/config";
+import console from "console";
 
 const rwClient = client.readWrite;
 const CronJob = cron.CronJob;
 
 const base = airtable.base("appRpJl0VIdVTRpTk");
-const tweets = [];
-
-console.log(base);
+const tweetsArray = [];
 
 const dayData = new Date();
 const formatData = () => {
@@ -25,54 +28,58 @@ const formatData = () => {
 
 console.log(formatData());
 
-const getTweetFromAirtable = async () => {
-  console.log("getTweetFromAirtable");
-  base("Table 1")
-    .select({
-      // Selecting the first 3 records in Grid view:
-      maxRecords: 1,
-      view: "Grid view",
-    })
-    .eachPage(
-      function page(records, fetchNextPage) {
-        // This function (`page`) will get called for each page of records.
-        try {
-          records.forEach(function (record) {
-            console.log(record);
-
-            console.log(record.get("tweet"));
-            console.log(record.get("tweet").length);
-            console.log(record.get("tweet").match(/.{1,280}/g));
-
-            tweets.push(record.get("tweet").match(/.{1,280}/g));
-
-            //tweet(record.get("tweet"));
-          });
-        } catch (e) {
-          console.log("error inside eachPage => ", e);
-        }
-
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        try {
-          fetchNextPage();
-        }
-        catch (e) {
-          console.log("error inside fetchNextPage => ", e);
-        }
-      },
-      function done(err) {
-        if (err) {
-          console.error(err);
-          return;
-        }
-      }
-    );
+const downloadImage = (url, filepath) => {
+  return download.image({
+    url: url,
+    dest: filepath,
+  });
 };
 
-getTweetFromAirtable();
+const getTweetFromAirtable = async () => {
+  //fetch to airtable
+  try {
+    const response = await axios.get(
+      "https://api.airtable.com/v0/appRpJl0VIdVTRpTk/Table%201",
+      {
+        params: {
+          maxRecords: "3",
+          view: "Grid view",
+        },
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        },
+      }
+    );
 
+    const data = response.data.records;
+    const tweets = data.map((tweet) => tweet.fields.tweet);
+    const img = data.map((tweet) => tweet.fields.img);
+    const imgUrl = img.map((img) => img[0].url);
+    console.log(img);
+    console.log(imgUrl[0]);
+    const thread = tweets.join(" ").match(/.{1,280}/g);
+
+    const imageDownloaded = await downloadImage(imgUrl[0], "./img.jpg");
+    console.log(imageDownloaded);
+
+    const mediaId = await rwClient.v1.uploadMedia(imageDownloaded.filename);
+
+    console.log(mediaId);
+
+    const insertImage = (thread, img) => {
+      thread[0] = { text: thread[0], media: { media_ids: [img] } };
+      return thread;
+    };
+
+    const threadWithImage = insertImage(thread, mediaId);
+
+    console.log(threadWithImage);
+
+    return threadWithImage;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const job = new CronJob(
   "0 0 0 * * *",
@@ -94,13 +101,19 @@ const tweet = async (text) => {
   }
 };
 
+const thread = async (tweets) => {
+  try {
+    const response = await rwClient.v2.tweetThread(tweets);
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const tweets = await getTweetFromAirtable();
+
+console.log(tweets);
+
+thread(tweets);
+
 // job.start();
-
-
-
-
-try { console.log({ tweets }); }
-catch (e) {
-  console.log(e);
-}
-

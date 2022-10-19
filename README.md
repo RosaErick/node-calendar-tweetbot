@@ -12,7 +12,7 @@ Put your Twitter and Airtable API keys on the .env file
 
 In the project directory, you can run:
 
-### `node index.js`
+#### `node index.js`
 
 
 #

@@ -1,0 +1,18 @@
+# Calendar Bot - A simple Twitter bot written in Node.js
+
+ This project was created to practice and study.
+This app fetches data from a calendar on Airtable and transforms it in a tweet or a thread with image. It also comes with a cron job to repeat the task everyday.
+ 
+ Feel free to use, modify and share as you like. The Calendar can be anything, everyday recipes, quotes, etc. The only requirement is to have a calendar on Airtable.
+ 
+## How to use
+
+Download the project
+Put your Twitter and Airtable API keys on the .env file
+
+In the project directory, you can run:
+
+### `node index.js`
+
+
+#

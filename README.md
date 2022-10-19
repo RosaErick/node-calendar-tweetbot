@@ -8,6 +8,7 @@
 ### How to use
 
 Download the project
+
 Put your Twitter and Airtable API keys on the .env file
 
 In the project directory, you can run:

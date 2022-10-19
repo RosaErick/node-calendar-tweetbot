@@ -4,7 +4,7 @@ class AirtableController {
   async index(req, res) {
     try {
       const base = airtable.base("appRpJl0VIdVTRpTk");
-        const dayData = new Date();
+      const dayData = new Date();
       const tweet = [];
       const formatData = () => {
         const day = dayData.getDate();
@@ -21,7 +21,7 @@ class AirtableController {
       base("Table 1")
         .select({
           // Selecting the first 3 records in Grid view:
- 
+
           view: "Grid view",
         })
         .eachPage(
@@ -29,21 +29,18 @@ class AirtableController {
             // This function (`page`) will get called for each page of records.
 
             records.forEach(function (record) {
-             
-                console.log(record);
+              console.log(record);
 
-                console.log(record.get("tweet"));
-                  console.log(record.get("tweet").length);
-                  tweet.push(record.get("tweet"));
-                    console.log(tweet);
-                //tweet(record.get("tweet"));
-              
+              console.log(record.get("tweet"));
+              console.log(record.get("tweet").length);
+              tweet.push(record.get("tweet"));
+              console.log(tweet);
+              //tweet(record.get("tweet"));
             });
 
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
             // If there are no more records, `done` will get called.
-           
           },
           function done(err) {
             if (err) {
@@ -58,6 +55,5 @@ class AirtableController {
     }
   }
 }
-
 
 export default new AirtableController();

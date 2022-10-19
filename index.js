@@ -4,15 +4,10 @@ import download from "image-downloader";
 import "dotenv/config";
 import DataProvider from "./service/provider.js";
 
-
 const rwClient = client.readWrite;
 const CronJob = cron.CronJob;
 
-
-
 const formatedData = () => {
-
-
   const dayData = new Date();
   const day = dayData.getDate();
   const month = dayData.getMonth() + 1;
@@ -25,7 +20,14 @@ const formatedData = () => {
   }
 };
 
-
+const fetchAirtable = async () => {
+  try {
+    const data = await DataProvider.fetchData();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const downloadImage = (url, filepath) => {
   return download.image({
@@ -34,49 +36,10 @@ const downloadImage = (url, filepath) => {
   });
 };
 
-const getTweetFromAirtable = async () => {
-  //fetch to airtable
-  try {
-    const data = await DataProvider.fetchData();
-    const tweets = data.map((tweet) => tweet.fields.tweet);
-    const img = data.map((tweet) => tweet.fields.img);
-    const imgUrl = img.map((img) => img[0].url);
-    console.log(img);
-    console.log(imgUrl[0]);
-    const thread = tweets.join(" ").match(/.{1,280}/g);
-
-    const imageDownloaded = await downloadImage(imgUrl[0], "./img.jpg");
-    console.log(imageDownloaded);
-
-    const mediaId = await rwClient.v1.uploadMedia(imageDownloaded.filename);
-
-    console.log(mediaId);
-
-    const insertImage = (thread, img) => {
-      thread[0] = { text: thread[0], media: { media_ids: [img] } };
-      return thread;
-    };
-
-    const threadWithImage = insertImage(thread, mediaId);
-
-    console.log(threadWithImage);
-
-    return threadWithImage;
-  } catch (error) {
-    console.log(error);
-  }
+const insertImage = (thread, img) => {
+  thread[0] = { text: thread[0], media: { media_ids: [img] } };
+  return thread;
 };
-
-const job = new CronJob(
-  "0 0 0 * * *",
-  function () {
-    getTweetFromAirtable();
-  },
-  null,
-
-  true,
-  "America/Los_Angeles"
-);
 
 const tweet = async (text) => {
   try {
@@ -96,10 +59,41 @@ const thread = async (tweets) => {
   }
 };
 
-const tweets = await getTweetFromAirtable();
+const filterDataByDate = (data) => {
+  const formatedDate = formatedData();
+  const filteredData = data.filter((item) => {
+    return item.fields.data === formatedDate;
+  });
+  return filteredData;
+};
 
-console.log(tweets);
 
-thread(tweets);
+
+const data = await fetchAirtable();
+const filteredData = filterDataByDate(data);
+const tweets = filteredData.map((tweet) => tweet.fields.tweet);
+const imgs = [...filteredData[0].fields.img];
+
+
+const imgUrl = imgs[0].url;
+const imageDownloaded = await downloadImage(imgUrl, "./img.jpg");
+
+const threadMount = tweets.join(" ").match(/.{1,280}/g);
+const mediaId = await rwClient.v1.uploadMedia(imageDownloaded.filename);
+const threadWithImage = insertImage(threadMount, mediaId);
+
+console.log({ threadWithImage });
+
+const job = new CronJob(
+  "0 0 0 * * *",
+  function () {
+    thread(threadWithImage);
+  },
+  null,
+  true,
+  "America/Los_Angeles"
+);
+
+thread(threadWithImage);
 
 // job.start();
